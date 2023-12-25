@@ -33,8 +33,8 @@ driver.get("https://s.amizone.net")
 username_box = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "_UserName")))
 password_box = driver.find_element(by=By.NAME, value="_Password")
 
-username_box.send_keys("9469971")
-password_box.send_keys("WhyWouldILeaveItHere?")
+username_box.send_keys(os.environ['AMIZONE_USERNAME'])
+password_box.send_keys(os.environ['AMIZONE_PASSWORD'])
 
 submit_button = driver.find_element(by=By.CSS_SELECTOR, value="button")
 
@@ -62,15 +62,13 @@ driver.quit()
 
 output_msg = "*TODAY'S ATTENDANCE REMINDER!*\n\n"
 for sub in allsubjects:
-    print(sub.__dict__)
     output_msg += f"*{sub.course_name}* - {round(sub.attendance, 2)} "
     if sub.attendance < 75:
         output_msg += "| *BELOW 75%*"
     output_msg += "\n\n"
 
-account_sid = ''
-auth_token = ''
-twilio_client = Client(account_sid, auth_token)
+
+twilio_client = Client(os.environ['TWILIO_ACCOUNT_SID'], os.environ['TWILIO_AUTHTOKEN'])
 
 from openai import OpenAI
 client = OpenAI()
@@ -85,7 +83,6 @@ completion = client.chat.completions.create(
   ]
 )
 
-print(completion.choices[0].message.content)
 message = twilio_client.messages.create(
     from_='whatsapp:+[FROM NUMBER]',
     body=output_msg + completion.choices[0].message.content,
